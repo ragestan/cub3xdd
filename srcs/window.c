@@ -6,7 +6,7 @@
 /*   By: zbentalh <zbentalh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/11 18:00:44 by zbentalh          #+#    #+#             */
-/*   Updated: 2023/06/06 11:11:13 by zbentalh         ###   ########.fr       */
+/*   Updated: 2023/06/08 22:30:16 by zbentalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,6 @@ void	find_player(t_cube *cube)
 			{
 				cube->player.x = x * TOLE + TOLE / 2;
 				cube->player.y = y * TOLE + TOLE / 2;
-				//printf("player found at %d/%d\n",x,y);
 				cube->player.posx = 0;
 				cube->player.posy = 0;
 				if (cube->map[y][x] == 'N')
@@ -39,7 +38,6 @@ void	find_player(t_cube *cube)
 					cube->player.angle = 0;
 				else if (cube->map[y][x] == 'W')
 					cube->player.angle = M_PI;
-				//printf("player found at %d/%d\n",x,y);
 				return ;
 			}
 		}
@@ -47,30 +45,109 @@ void	find_player(t_cube *cube)
 	}
 }
 
+void	horizintol_hit(t_cube *cube,float angle,t_hit *hit)
+{
+	float x;
+	float y;
+	float xstep;
+	float ystep;
+
+	
+	y = (cube->player.y / TOLE) * TOLE;
+	ystep = TOLE;
+	if (angle > M_PI)
+	{
+		y += TOLE;
+		ystep = -TOLE;
+	}
+	if ((int)floor(y/TOLE) > 15 || (int)floor(y/TOLE) < 0)
+		return(hit->x = DBL_MAX, (void)(hit->y = DBL_MAX));
+	x = (cube->player.x + ((y - cube->player.y) / tan(angle)));
+	if ((int)floor(x/TOLE) > 30 || (int)floor(x/TOLE) < 0)
+		return(hit->x = DBL_MAX, (void)(hit->y = DBL_MAX));
+	xstep = TOLE / tan(angle);
+	if (angle > M_PI / 2 && angle < 3 * M_PI / 2)
+		xstep = -TOLE / tan(angle);
+	while (cube->map[(int)(y / TOLE)][(int)(x / TOLE)] != '1')
+	{
+		y += ystep;
+		x += xstep;
+		if ((int)floor(y/TOLE) > 15 || (int)floor(y/TOLE) < 0)
+			return(hit->x = DBL_MAX, (void)(hit->y = DBL_MAX));
+		if ((int)floor(x/TOLE) > 30 || (int)floor(x/TOLE) < 0)
+		return(hit->x = DBL_MAX, (void)(hit->y = DBL_MAX));
+	}
+	hit->x = x;
+	hit->y = y;
+}
+
+void	vertical_hit(t_cube *cube,float angle,t_hit *hit)
+{
+	float x;
+	float y;
+	float xstep;
+	float ystep;
+	
+
+	x = floor(cube->player.x / TOLE) * TOLE;
+	xstep = TOLE;
+	if (angle > M_PI / 2 && angle < 3 * M_PI / 2)
+	{
+		x += TOLE;
+		xstep = -TOLE;
+	}
+	if ((int)floor(x/TOLE) > 30 || (int)floor(x/TOLE) < 0)
+		return;
+	y = cube->player.y + ((x - cube->player.x) * tan(angle));
+	ystep = TOLE * tan(angle);
+	if (angle > M_PI && angle < 2*M_PI)
+	{
+		
+		ystep *= -1;
+	}
+	if ((int)floor(y/TOLE) > 15 || (int)floor(y/TOLE) < 0)
+		return;
+	while (cube->map[(int)floor(y / TOLE)] && cube->map[(int)floor(y / TOLE)][(int)floor(x / TOLE)] && cube->map[(int)floor(y / TOLE)][(int)floor(x / TOLE)] != '1')
+	{
+		y += ystep;
+		x += xstep;
+		if ((int)floor(y/TOLE) > 15 || (int)floor(y/TOLE) < 0)
+			return;
+		if ((int)floor(x/TOLE) > 30 || (int)floor(x/TOLE) < 0)
+			return;
+		//printf("%i-----%i------------------->%f------->%f\n",(int)floor(y/TOLE),(int)floor(x/TOLE),ystep,xstep);
+	}
+	if (sqrt(pow(hit->x - cube->player.x,2) + pow(hit->y - cube->player.y,2)) > sqrt(pow(x - cube->player.x,2) + pow(y - cube->player.y,2)))
+	{
+		// printf("%f\n",sqrt(pow(hit->x - cube->player.x,2) + pow(hit->y - cube->player.y,2)));
+		// printf("%f\n",sqrt(pow(x - cube->player.x,2) + pow(y - cube->player.y,2)));
+		hit->x = x;
+		hit->y = y;
+	}
+}
+
 void draw_line(t_cube *cube)
 {
-	int i;
-	int x;
+	t_hit x;
 	float	angle;
+	int y;
+	
 
-	i = 0;
-	angle = -30;
-	x = 0;
-	while (angle <= 30)
+	y = 0;
+	x.x = 0;
+	x.y = 0;
+	angle = cube->player.angle - 30*M_PI/180;
+	while (angle <= cube->player.angle + 30*M_PI/180)
 	{
-		i = 0;
-		while (1)
-		{
-			//my_mlx_pixel_put(cube, ((cube->player.x) + i * cos(cube->player.angle - (angle * M_PI / 180))) * MINIMAP_SCALE , ((cube->player.y ) + i * sin(cube->player.angle - (angle * M_PI / 180))) * MINIMAP_SCALE, 0xFF0000);
-			i++;
-			if(cube->map[(int)(((cube->player.y) + i * (sin(cube->player.angle - (angle * M_PI / 180)))) / TOLE)][(int) ((((cube->player.x) + (i * cos(cube->player.angle - (angle * M_PI / 180)))) / TOLE))] == '1')
-			{
-				d_game(cube,i,x);
-				break;
-			}
-		}
-		x += WIDTH / 300;
-		angle += 0.1;
+		horizintol_hit(cube,angle,&x);
+		//vertical_hit(cube,angle,&x);
+		if (x.x != DBL_MAX && x.y != DBL_MAX)
+			my_mlx_pixel_put(cube, ((x.x) +  cos(angle)) * MINIMAP_SCALE , ((x.y) + sin(angle)) * MINIMAP_SCALE, 0x9BA4B5);
+		//printf("%f--->%f\n",x.x,x.y);
+		//exit(0);
+		//d_game(cube,sqrt(pow(x.x - cube->player.x, 2) + pow(x.y - cube->player.y, 2)),y);
+		y++;
+		angle += (60 * M_PI / 180 ) / (WIDTH);
 	}
 }
 
@@ -126,14 +203,16 @@ void	draw_wall(t_cube *cube,int c,int tmp_x)
 	draw_down(cube,HIGHT/2 + c/2,tmp_x);
 }
 
-void	d_game(t_cube *cube,int i,int x)
+void	d_game(t_cube *cube,float i,int x)
 {
 	float c;
 	float tmp_x;
 
-	tmp_x = (float)50/i;
-	
+	//printf("i->%f\n",i);
+	tmp_x = (float)TOLE/i;
+	//printf("tmp->%f\n",tmp_x);
 	c = tmp_x * ((WIDTH/2) / tan(30 * M_PI / 180));
+	//printf("c->%f\n",c);
 	if (c > HIGHT)
 		c = HIGHT;
 	draw_wall(cube,c,x);
@@ -163,54 +242,15 @@ int move(int keycode,t_cube *cube)
 {
 	if (keycode == 53)
 		exit(0);
-	if (keycode == 0) //d
-	{
+	if (keycode == 2) //d
 		cube->player.lor = -1;
-		// cube->player.x += 5 * cos(cube->player.angle + (M_PI / 2));
-		// cube->player.y += 5 * sin(cube->player.angle + (M_PI / 2));
-		// if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x - 5) / TOLE )] == '1')
-		// {
-		// 	cube->player.x -= 5 * cos(cube->player.angle + (M_PI / 2));
-		// 	cube->player.y -= 5 * sin(cube->player.angle + (M_PI / 2));	
-		// }
-		// cube->player.posx = 1;
-	}
-	if (keycode == 2) //a
-	{
+	if (keycode == 0) //a
 		cube->player.lor = 1;
-		// cube->player.x += 5 * cos(cube->player.angle - (M_PI / 2));
-		// cube->player.y += 5 * sin(cube->player.angle - (M_PI / 2));
-		// if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x) / TOLE )] == '1')
-		// {
-		// 	cube->player.x -= 5 * cos(cube->player.angle - (M_PI / 2));
-		// 	cube->player.y -= 5 * sin(cube->player.angle - (M_PI / 2));
-		// }
-		// cube->player.posx = 1;
-	}
 	if (keycode == 13) //w
-	{
 		cube->player.uod = -1;
-		// cube->player.x += 5 * cos(cube->player.angle);
-		// cube->player.y += 5 * sin(cube->player.angle);
-		// if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x - 5) / TOLE )] == '1')
-		// {
-		// 	cube->player.x -= 5 * cos(cube->player.angle);
-		// 	cube->player.y -= 5 * sin(cube->player.angle);
-		// }
-		// cube->player.posy = 1;
-	}
 	if (keycode == 1) //s
-	{
 		 cube->player.uod = 1;
-		// cube->player.x -= 5 * cos(cube->player.angle);
-		// cube->player.y -= 5 * sin(cube->player.angle);
-		// if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x) / TOLE )] == '1')
-		// {
-		// 	cube->player.x += 5 * cos(cube->player.angle);
-		// 	cube->player.y += 5 * sin(cube->player.angle);
-		// }
-		// cube->player.posy = 1;
-	}
+
 	if (keycode == 124)
 		cube->player.angle -= 0.01 * M_PI;
 	if (keycode == 123)
@@ -234,8 +274,8 @@ void	draw_square(t_cube *cube,int x,int y,int f)
 		k = 0;
 		if (f == cube->cc && z == TOLE - 1)
 		{
-				z++;
-				continue;
+			z++;
+			continue;
 		}
 		while(k < TOLE)
 		{
@@ -260,8 +300,6 @@ void	draw_player(t_cube *cube,float x,float y)
 	
 	z = 0;
 	k = 0;
-	//printf("x = %f,y = %f\n",cube->player.x,cube->player.y);
-	
 	while(z < PLAYER_S)
 	{
 		
@@ -315,7 +353,7 @@ int	draw(t_cube *cube)
 	int j;
 
 	i = 0;
-	draw_line(cube);
+	
 	while (i < (int)ft_double_strlen(cube->map))
 	{
 		j = 0;
@@ -338,7 +376,7 @@ int	draw(t_cube *cube)
 		my_mlx_pixel_put(cube, ((cube->player.x) + i * cos(cube->player.angle)) * MINIMAP_SCALE , ((cube->player.y ) + i * sin(cube->player.angle)) * MINIMAP_SCALE, 0xFF0000);
 		i++;
 	}
-	
+	draw_line(cube);
 	
 	return (0);
 }
@@ -437,7 +475,6 @@ void	start(t_pars *g)
 	mlx_hook(cube.mlx.win_ptr, 2, 0, move, &cube);
 	mlx_hook(cube.mlx.win_ptr, 6, 0, rotation, &cube);
 	mlx_hook(cube.mlx.win_ptr, 3, 0, no_move, &cube);
-	//draw(&cube);
 	mlx_loop_hook(cube.mlx.mlx_ptr, update, &cube);
 	mlx_loop(cube.mlx.mlx_ptr);
 }

@@ -6,7 +6,7 @@
 /*   By: zbentalh <zbentalh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 20:16:03 by rel-mham          #+#    #+#             */
-/*   Updated: 2023/05/21 16:06:07 by zbentalh         ###   ########.fr       */
+/*   Updated: 2023/06/08 22:06:23 by zbentalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 # include <errno.h>
 # include <fcntl.h>
 # include <math.h>
+#include "float.h"
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
@@ -27,7 +28,13 @@
 # define HIGHT 720
 # define TOLE 40
 # define PLAYER_S 10
-# define MINIMAP_SCALE 0.4
+# define MINIMAP_SCALE 1
+
+typedef	struct s_hit
+{
+	double x;
+	double y;
+}				t_hit;
 
 typedef	struct	s_player
 {
@@ -36,8 +43,8 @@ typedef	struct	s_player
 	float x;
 	float y;
 	float angle;
-	int	uod; // 1 if up -1 if down
-	int	lor; // 1 if right -1 if left
+	int	uod; 
+	int	lor;
 }				t_player;
 
 typedef struct s_mlx
@@ -93,5 +100,5 @@ void		loopars(t_pars *g);
 
 void	start(t_pars *g);
 void	my_mlx_pixel_put(t_cube *data, int x, int y, int color);
-void	d_game(t_cube *cube,int i,int x);
+void	d_game(t_cube *cube,float i,int x);
 #endif
