@@ -6,12 +6,32 @@
 /*   By: zbentalh <zbentalh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/11 18:00:44 by zbentalh          #+#    #+#             */
-/*   Updated: 2023/06/08 22:30:16 by zbentalh         ###   ########.fr       */
+/*   Updated: 2023/06/14 15:33:49 by zbentalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/cub3d.h"
 
+int ft_strlen_x(char **str)
+{
+	int i;
+	int j;
+	int z;
+
+	i = 0;
+	j = 0;
+	z = 0;
+	while (str[i])
+	{
+		j = 0;
+		while (str[i] && str[i][j] && str[i][j] != '\n')
+			j++;
+		if (z < j)
+			z = j;
+		i++;
+	}
+	return (z);
+}
 void	find_player(t_cube *cube)
 {
 	int x;
@@ -45,82 +65,106 @@ void	find_player(t_cube *cube)
 	}
 }
 
-void	horizintol_hit(t_cube *cube,float angle,t_hit *hit)
+void	step_check(double angle,float *xstep,float *ystep)
+{
+	if (angle > 0 && angle < M_PI && *ystep < 0)
+		*ystep *= -1;
+	else if (angle < 2 * M_PI && angle > M_PI && *ystep > 0)
+		*ystep *= -1;
+	if (angle > M_PI / 2 && angle < 3 * M_PI / 2 && *xstep > 0)
+		*xstep *= -1;
+	else if (((angle < M_PI / 2 && angle < 0) || (angle > 3 * M_PI / 2 && angle < 2 * M_PI)) && *xstep < 0)
+		*xstep *= -1;
+}
+
+void	horizintol_hit(t_cube *cube,double angle,t_hit *hit)
 {
 	float x;
 	float y;
 	float xstep;
 	float ystep;
-
 	
-	y = (cube->player.y / TOLE) * TOLE;
+	if (angle == 0 || angle == M_PI || angle == 2 * M_PI)
+		return(hit->x = DBL_MAX, (void)(hit->y = DBL_MAX));
+	y = floor(cube->player.y / TOLE) * TOLE;
 	ystep = TOLE;
-	if (angle > M_PI)
-	{
-		y += TOLE;
+	if (angle < M_PI && angle > 0)
+		y += TOLE;	
+	else
 		ystep = -TOLE;
-	}
 	if ((int)floor(y/TOLE) > 15 || (int)floor(y/TOLE) < 0)
 		return(hit->x = DBL_MAX, (void)(hit->y = DBL_MAX));
-	x = (cube->player.x + ((y - cube->player.y) / tan(angle)));
+	x = cube->player.x + ((y - cube->player.y) / tan(angle));
+	hit->f = x;
 	if ((int)floor(x/TOLE) > 30 || (int)floor(x/TOLE) < 0)
 		return(hit->x = DBL_MAX, (void)(hit->y = DBL_MAX));
 	xstep = TOLE / tan(angle);
-	if (angle > M_PI / 2 && angle < 3 * M_PI / 2)
-		xstep = -TOLE / tan(angle);
-	while (cube->map[(int)(y / TOLE)][(int)(x / TOLE)] != '1')
+	if (angle > M_PI / 2 && angle < 3 * M_PI / 2 && xstep > 0)
+		xstep *= -1;
+	if (angle > M_PI && angle < 2 * M_PI)
+		y--;
+	step_check(angle,&xstep,&ystep);
+	while (cube->map[(int)floor(y / TOLE)][(int)floor(x / TOLE)] != '1')
 	{
+		// if (x < TOLE && x + xstep < TOLE && xstep < 0)
+		// 	return(hit->x = DBL_MAX, (void)(hit->y = DBL_MAX));
 		y += ystep;
 		x += xstep;
-		if ((int)floor(y/TOLE) > 15 || (int)floor(y/TOLE) < 0)
+		if ((int)floor(y/TOLE) > (int)ft_double_strlen(cube->map) || (int)floor(y/TOLE) < 0)
 			return(hit->x = DBL_MAX, (void)(hit->y = DBL_MAX));
-		if ((int)floor(x/TOLE) > 30 || (int)floor(x/TOLE) < 0)
-		return(hit->x = DBL_MAX, (void)(hit->y = DBL_MAX));
+		if ((int)floor(x/TOLE) > (int)ft_strlen_x(cube->map) || (int)floor(x/TOLE) < 0)
+			return(hit->x = DBL_MAX, (void)(hit->y = DBL_MAX));	
 	}
+	if (angle > M_PI && angle < 2 * M_PI)
+		y++;
 	hit->x = x;
 	hit->y = y;
+	hit->z = xstep;
 }
 
-void	vertical_hit(t_cube *cube,float angle,t_hit *hit)
+void	vertical_hit(t_cube *cube,double angle,t_hit *hit)
 {
 	float x;
 	float y;
 	float xstep;
 	float ystep;
+	// hit->x = DBL_MAX;
+	// (hit->y = DBL_MAX);
 	
-
+	if (angle == 3 * M_PI / 2 || angle == M_PI / 2)
+		return;
 	x = floor(cube->player.x / TOLE) * TOLE;
 	xstep = TOLE;
 	if (angle > M_PI / 2 && angle < 3 * M_PI / 2)
-	{
-		x += TOLE;
 		xstep = -TOLE;
-	}
+	else
+		x += TOLE;
+	//printf("%f,%f\n",x,angle);
 	if ((int)floor(x/TOLE) > 30 || (int)floor(x/TOLE) < 0)
 		return;
 	y = cube->player.y + ((x - cube->player.x) * tan(angle));
 	ystep = TOLE * tan(angle);
-	if (angle > M_PI && angle < 2*M_PI)
-	{
-		
+	if (angle > M_PI && angle < 2*M_PI && ystep > 0)
 		ystep *= -1;
-	}
 	if ((int)floor(y/TOLE) > 15 || (int)floor(y/TOLE) < 0)
 		return;
+	if (angle > M_PI / 2 && angle < 3 * M_PI / 2)
+		x--;
+	step_check(angle,&xstep,&ystep);
 	while (cube->map[(int)floor(y / TOLE)] && cube->map[(int)floor(y / TOLE)][(int)floor(x / TOLE)] && cube->map[(int)floor(y / TOLE)][(int)floor(x / TOLE)] != '1')
 	{
 		y += ystep;
 		x += xstep;
-		if ((int)floor(y/TOLE) > 15 || (int)floor(y/TOLE) < 0)
+		if ((int)floor(y/TOLE) >= (int)ft_double_strlen(cube->map) || (int)floor(y/TOLE) < 0)
 			return;
-		if ((int)floor(x/TOLE) > 30 || (int)floor(x/TOLE) < 0)
+		if ((int)floor(x/TOLE) >= (int)ft_strlen_x(cube->map) || (int)floor(x/TOLE) < 0)
 			return;
-		//printf("%i-----%i------------------->%f------->%f\n",(int)floor(y/TOLE),(int)floor(x/TOLE),ystep,xstep);
+		//printf("%d,%d\n",(int)floor(x/TOLE),(int)floor(y/TOLE));
 	}
+	if (angle > M_PI / 2 && angle < 3 * M_PI / 2)
+		x++;
 	if (sqrt(pow(hit->x - cube->player.x,2) + pow(hit->y - cube->player.y,2)) > sqrt(pow(x - cube->player.x,2) + pow(y - cube->player.y,2)))
 	{
-		// printf("%f\n",sqrt(pow(hit->x - cube->player.x,2) + pow(hit->y - cube->player.y,2)));
-		// printf("%f\n",sqrt(pow(x - cube->player.x,2) + pow(y - cube->player.y,2)));
 		hit->x = x;
 		hit->y = y;
 	}
@@ -129,26 +173,63 @@ void	vertical_hit(t_cube *cube,float angle,t_hit *hit)
 void draw_line(t_cube *cube)
 {
 	t_hit x;
-	float	angle;
+	double	angle;
+	int i = 0;
 	int y;
 	
 
 	y = 0;
 	x.x = 0;
 	x.y = 0;
-	angle = cube->player.angle - 30*M_PI/180;
-	while (angle <= cube->player.angle + 30*M_PI/180)
+	angle = cube->player.angle - 30 * M_PI/180;
+	if (angle > 2 * M_PI)
+		angle -= 2 * M_PI;
+	if (angle < 0)
+		angle += 2 * M_PI;
+	//printf("%f\n",angle * 180 / M_PI);
+	while (i < WIDTH)
 	{
 		horizintol_hit(cube,angle,&x);
-		//vertical_hit(cube,angle,&x);
-		if (x.x != DBL_MAX && x.y != DBL_MAX)
-			my_mlx_pixel_put(cube, ((x.x) +  cos(angle)) * MINIMAP_SCALE , ((x.y) + sin(angle)) * MINIMAP_SCALE, 0x9BA4B5);
+		vertical_hit(cube,angle,&x);
+		// int f;
+		// int z;
+		// f = x.x;
+		//printf("%f,%f\n",x.x,x.y);	
+		// if (x.x != DBL_MAX && x.y != DBL_MAX)
+		// {
+		// 	while( f < x.x + 5)
+		// 	{
+		// 		z = x.y;
+		// 		while(z < x.y + 5)
+		// 		{
+			
+		// 			if (z < 0 || f < 0 || z > 1400 || f > 720)
+		// 				break;
+		// 			if (x.x < 20 && angle > M_PI / 2 && angle < 3 * M_PI / 2)
+		// 			printf(" x = %d,%f,%f,%f,%f\n",f,cube->player.x,cube->player.y,x.z,x.f);
+		// 			my_mlx_pixel_put(cube, (f +  cos(angle)) * MINIMAP_SCALE , (z + sin(angle)) * MINIMAP_SCALE, 0xffffff);
+		// 			z++;
+		// 		}
+		// 		if (z < 0 || f < 0 || z > 1400 || f > 720)
+		// 				break;
+		// 		f++;
+		// 	}
+		// }
+			// my_mlx_pixel_put(cube, ((x.x) +  sin(angle)) * MINIMAP_SCALE , ((x.y) + cos(angle)) * MINIMAP_SCALE, 0x9BA4B5);
 		//printf("%f--->%f\n",x.x,x.y);
 		//exit(0);
-		//d_game(cube,sqrt(pow(x.x - cube->player.x, 2) + pow(x.y - cube->player.y, 2)),y);
+		d_game(cube,sqrt(pow(x.x - cube->player.x, 2) + pow(x.y - cube->player.y, 2)),y);
+		//printf("%f\n",sqrt(pow(x.x - cube->player.x, 2) + pow(x.y - cube->player.y, 2)));
 		y++;
+		i++;
+		//printf("%i\n",y);
 		angle += (60 * M_PI / 180 ) / (WIDTH);
+		if (angle > 2 * M_PI)
+			angle -= 2 * M_PI;
+		if (angle < 0)
+			angle += 2 * M_PI;
 	}
+	//exit(1);
 }
 
 void	draw_down(t_cube *cube,int y,int tmp_x)
@@ -259,6 +340,7 @@ int move(int keycode,t_cube *cube)
 		cube->player.angle -= 2 * M_PI;
 	if (cube->player.angle < 0)
 		cube->player.angle += 2 * M_PI;
+	// printf("%f\n",cube->player.angle);
 	return(0);
 }
 
@@ -353,7 +435,7 @@ int	draw(t_cube *cube)
 	int j;
 
 	i = 0;
-	
+	draw_line(cube);
 	while (i < (int)ft_double_strlen(cube->map))
 	{
 		j = 0;
@@ -376,7 +458,7 @@ int	draw(t_cube *cube)
 		my_mlx_pixel_put(cube, ((cube->player.x) + i * cos(cube->player.angle)) * MINIMAP_SCALE , ((cube->player.y ) + i * sin(cube->player.angle)) * MINIMAP_SCALE, 0xFF0000);
 		i++;
 	}
-	draw_line(cube);
+		
 	
 	return (0);
 }
@@ -453,11 +535,32 @@ int	update(t_cube *cube)
 int	rotation(int x,int y ,t_cube *cube)
 {
 	(void)y;
-	
-	if (x > WIDTH / 2 && x < WIDTH)
+	static int tmp;
+
+	if (x > WIDTH / 2 && x < WIDTH && tmp == 0)
+	{
 		cube->player.angle -= 0.1;
-	else if (x < WIDTH / 2 && x > 0)
+		tmp = x;
+	}
+	else if (x < WIDTH / 2 && x > 0 && tmp == 0)
+	{
 		cube->player.angle += 0.1;
+		tmp = x;
+	}
+	else if (x < tmp)
+	{
+		cube->player.angle += 0.1;
+		tmp = x;
+	}
+	else if (x > tmp)
+	{
+		cube->player.angle -= 0.1;
+		tmp = x;
+	}
+	if (cube->player.angle > 2 * M_PI)
+		cube->player.angle -= 2 * M_PI;
+	if (cube->player.angle < 0)
+		cube->player.angle += 2 * M_PI;
 	return (1);
 }
 
@@ -473,7 +576,7 @@ void	start(t_pars *g)
 	cube.mlx.win_ptr = mlx_new_window(cube.mlx.mlx_ptr, WIDTH, HIGHT, "cub3d");
 	mlx_hook(cube.mlx.win_ptr, 17, 0, close_pro, &cube);
 	mlx_hook(cube.mlx.win_ptr, 2, 0, move, &cube);
-	mlx_hook(cube.mlx.win_ptr, 6, 0, rotation, &cube);
+	//mlx_hook(cube.mlx.win_ptr, 6, 0, rotation, &cube);
 	mlx_hook(cube.mlx.win_ptr, 3, 0, no_move, &cube);
 	mlx_loop_hook(cube.mlx.mlx_ptr, update, &cube);
 	mlx_loop(cube.mlx.mlx_ptr);

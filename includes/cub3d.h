@@ -6,7 +6,7 @@
 /*   By: zbentalh <zbentalh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 20:16:03 by rel-mham          #+#    #+#             */
-/*   Updated: 2023/06/08 22:06:23 by zbentalh         ###   ########.fr       */
+/*   Updated: 2023/06/11 19:07:12 by zbentalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,12 +28,14 @@
 # define HIGHT 720
 # define TOLE 40
 # define PLAYER_S 10
-# define MINIMAP_SCALE 1
+# define MINIMAP_SCALE 0.3
 
 typedef	struct s_hit
 {
 	double x;
 	double y;
+	double z;
+	double f;
 }				t_hit;
 
 typedef	struct	s_player
@@ -42,7 +44,7 @@ typedef	struct	s_player
 	float posy;
 	float x;
 	float y;
-	float angle;
+	double angle;
 	int	uod; 
 	int	lor;
 }				t_player;
@@ -101,4 +103,5 @@ void		loopars(t_pars *g);
 void	start(t_pars *g);
 void	my_mlx_pixel_put(t_cube *data, int x, int y, int color);
 void	d_game(t_cube *cube,float i,int x);
+void	draw_player(t_cube *cube,float x,float y);
 #endif
