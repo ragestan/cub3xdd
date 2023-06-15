@@ -6,7 +6,7 @@
 /*   By: zbentalh <zbentalh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 20:16:03 by rel-mham          #+#    #+#             */
-/*   Updated: 2023/06/11 19:07:12 by zbentalh         ###   ########.fr       */
+/*   Updated: 2023/06/15 14:58:22 by zbentalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,7 @@ typedef	struct s_hit
 {
 	double x;
 	double y;
-	double z;
-	double f;
+	int vertical;
 }				t_hit;
 
 typedef	struct	s_player
@@ -102,6 +101,6 @@ void		loopars(t_pars *g);
 
 void	start(t_pars *g);
 void	my_mlx_pixel_put(t_cube *data, int x, int y, int color);
-void	d_game(t_cube *cube,float i,int x);
+void	d_game(t_cube *cube,float i,int x,t_hit hit);
 void	draw_player(t_cube *cube,float x,float y);
 #endif
