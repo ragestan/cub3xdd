@@ -6,7 +6,7 @@
 /*   By: zbentalh <zbentalh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 19:54:05 by rel-mham          #+#    #+#             */
-/*   Updated: 2023/05/11 18:09:58 by zbentalh         ###   ########.fr       */
+/*   Updated: 2023/06/17 14:40:34 by zbentalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -216,6 +216,7 @@ int main(int ac, char **av)
 
 	if (ac != 2)
 		(ft_putstr_fd("Error\nNot valid ARGS\n", 2), exit(1));
+	
 	check_ext(av[1]);
 	g_init(&g);
 	g.fd = open (av[1], O_RDWR);
@@ -223,6 +224,9 @@ int main(int ac, char **av)
 		write_error("Wrong map path");
 	loopars(&g);
 	mapars(&g);
+	// g.imag = mlx_new_image(g.mlx, g.w, g.h);
+	// g.addr = mlx_get_data_addr(g.imag, &g.bpp, &g.ll, &g.endian);
+	
 	printf("done getting lines\n");
 	start(&g);
 }

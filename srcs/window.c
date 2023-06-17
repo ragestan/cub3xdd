@@ -6,11 +6,47 @@
 /*   By: zbentalh <zbentalh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/11 18:00:44 by zbentalh          #+#    #+#             */
-/*   Updated: 2023/06/15 18:21:40 by zbentalh         ###   ########.fr       */
+/*   Updated: 2023/06/17 16:51:15 by zbentalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/cub3d.h"
+
+// void	my_mlx_pixel_put2(t_cube *data, int x, int y, int color)
+// {
+// 	char	*dst;
+
+// 	dst = data->test.so + (y * data->test.line_length + x * (data->test.bits_per_pixel / 8));
+// 	*(unsigned int*)dst = color;
+// }
+
+void	texture(t_cube *cube)
+{
+	cube->text[0].img = mlx_xpm_file_to_image(cube->mlx.mlx_ptr, "srcs/l.xpm", &cube->text[0].width, &cube->text[0].hight);
+	//printf("width = %d hight = %d\n",cube->text[0].width ,cube->text[0].hight);
+	cube->text[0].data = mlx_get_data_addr(cube->text[0].img, &cube->text[0].bits_per_pixel, &cube->text[0].line_length, &cube->text[0].endian);
+	cube->text[1].img = mlx_xpm_file_to_image(cube->mlx.mlx_ptr, "srcs/r.xpm", &cube->text[1].width, &cube->text[1].hight);
+	cube->text[1].data = mlx_get_data_addr(cube->text[1].img, &cube->text[1].bits_per_pixel, &cube->text[1].line_length, &cube->text[1].endian);
+	cube->text[2].img = mlx_xpm_file_to_image(cube->mlx.mlx_ptr, "srcs/u.xpm", &cube->text[2].width, &cube->text[2].hight);
+	cube->text[2].data = mlx_get_data_addr(cube->text[2].img, &cube->text[2].bits_per_pixel, &cube->text[2].line_length, &cube->text[2].endian);
+	cube->text[3].img = mlx_xpm_file_to_image(cube->mlx.mlx_ptr, "srcs/d.xpm", &cube->text[3].width, &cube->text[3].hight);
+	cube->text[3].data = mlx_get_data_addr(cube->text[3].img, &cube->text[3].bits_per_pixel, &cube->text[3].line_length, &cube->text[3].endian);
+	return;	
+}
+
+
+int texture_color(t_cube *cube, int x, int y, int i)
+{
+	char *dst;
+	int color;
+
+	//printf("x = %d y = %d\n",cube->text[i].width ,cube->text[i].hight);
+	if (x < 0 || y < 0 || x >= cube->text[i].width || y >= cube->text[i].hight)
+		return (0);
+	dst = cube->text[i].data + (y * cube->text[i].line_length + x * (cube->text[i].bits_per_pixel / 8));
+	color = *(unsigned int*)dst;
+	return (color);
+}
 
 int ft_stlen_v2(char **str,int y)
 {
@@ -125,6 +161,8 @@ void	vertical_hit(t_cube *cube,double angle,t_hit *hit)
 	float xstep;
 	float ystep;
 	
+	if (cube->map[(int)floor(cube->player.y / TOLE)][(int)floor(cube->player.x / TOLE)] == '1')
+		return;
 	if (angle == 3 * M_PI / 2 || angle == M_PI / 2)
 		return;
 	x = floor(cube->player.x / TOLE) * TOLE;
@@ -146,6 +184,7 @@ void	vertical_hit(t_cube *cube,double angle,t_hit *hit)
 	step_check(angle,&xstep,&ystep);
 	while (cube->map[(int)floor(y / TOLE)] && cube->map[(int)floor(y / TOLE)][(int)floor(x / TOLE)] && cube->map[(int)floor(y / TOLE)][(int)floor(x / TOLE)] != '1')
 	{
+		
 		y += ystep;
 		x += xstep;
 		if ((int)floor(y/TOLE) >= (int)ft_double_strlen(cube->map) || (int)floor(y/TOLE) < 0)
@@ -155,7 +194,8 @@ void	vertical_hit(t_cube *cube,double angle,t_hit *hit)
 	}
 	if (angle > M_PI / 2 && angle < 3 * M_PI / 2)
 		x++;
-	hit->vertical= 0; 
+	hit->vertical= 0;
+	hit->angle = angle;
 	if (sqrt(pow(hit->x - cube->player.x,2) + pow(hit->y - cube->player.y,2)) > sqrt(pow(x - cube->player.x,2) + pow(y - cube->player.y,2)))
 	{
 		hit->x = x;
@@ -187,7 +227,7 @@ void draw_line(t_cube *cube)
 		// int f;
 		// int z;
 		// f = x.x;
-		//printf("%f,%f\n",x.x,x.y);	
+		// //printf("%f,%f\n",x.x,x.y);	
 		// if (x.x != DBL_MAX && x.y != DBL_MAX)
 		// {
 		// 	while( f < x.x + 5)
@@ -199,7 +239,7 @@ void draw_line(t_cube *cube)
 		// 			if (z < 0 || f < 0 || z > 1400 || f > 720)
 		// 				break;
 		// 			if (x.x < 20 && angle > M_PI / 2 && angle < 3 * M_PI / 2)
-		// 			printf(" x = %d,%f,%f,%f,%f\n",f,cube->player.x,cube->player.y,x.z,x.f);
+		// 			//printf(" x = %d,%f,%f,%f,%f\n",f,cube->player.x,cube->player.y,x.z,x.f);
 		// 			my_mlx_pixel_put(cube, (f +  cos(angle)) * MINIMAP_SCALE , (z + sin(angle)) * MINIMAP_SCALE, 0xffffff);
 		// 			z++;
 		// 		}
@@ -208,7 +248,7 @@ void draw_line(t_cube *cube)
 		// 		f++;
 		// 	}
 		// }
-			// my_mlx_pixel_put(cube, ((x.x) +  sin(angle)) * MINIMAP_SCALE , ((x.y) + cos(angle)) * MINIMAP_SCALE, 0x9BA4B5);
+		//  my_mlx_pixel_put(cube, ((x.x) +  sin(angle)) * MINIMAP_SCALE , ((x.y) + cos(angle)) * MINIMAP_SCALE, 0x9BA4B5);
 		//printf("%f--->%f\n",x.x,x.y);
 		//exit(0);
 		d_game(cube,sqrt(pow(x.x - cube->player.x, 2) + pow(x.y - cube->player.y, 2)),y,x);
@@ -230,7 +270,7 @@ void	draw_down(t_cube *cube,int y,int tmp_x)
 	(void)cube;
 	while(y < HIGHT)
 	{
-		my_mlx_pixel_put(cube,tmp_x,y,0x9BA4B5);
+		my_mlx_pixel_put(cube,tmp_x,y,cube->cc);
 		y++;
 	}
 }
@@ -240,19 +280,37 @@ void	draw_up(t_cube *cube,int y,int tmp_x)
 	(void)cube;
 	while(y > 0)
 	{
-		my_mlx_pixel_put(cube,tmp_x,y,0xF1F6F9);
+		my_mlx_pixel_put(cube,tmp_x,y,cube->fc);
 		y--;
 	}
 }
 
-void	draw_wall(t_cube *cube,int c,int tmp_x)
+void	draw_wall(t_cube *cube,int c,int tmp_x,t_hit hit)
 {
 	int y;
-
+	int z;
+	int l;
 	y = HIGHT/2 - c/2;
+	z = (hit.x / TOLE - (int)(hit.x / TOLE)) * TOLE;
+	l = (hit.y / TOLE - (int)(hit.y / TOLE)) * TOLE;
 	while(y < HIGHT && y <= HIGHT/2 + c/2)
 	{
-		my_mlx_pixel_put(cube,tmp_x,y,0x394867);
+		if (hit.vertical == 1)
+		{
+			if (hit.angle > M_PI / 2 && hit.angle < 3 * M_PI / 2)
+			{
+				//printf("up\n");
+				my_mlx_pixel_put(cube,tmp_x,y,texture_color(cube,z,l,0));//khdr
+				//printf("down\n");
+			}
+			else
+				my_mlx_pixel_put(cube,tmp_x,y,texture_color(cube,z,l,1));//rose
+		}
+		else
+			if (hit.angle > 0 && hit.angle < M_PI)
+				my_mlx_pixel_put(cube,tmp_x,y,texture_color(cube,z,l,2));//zr9
+			else
+				my_mlx_pixel_put(cube,tmp_x,y,texture_color(cube,z,l,3)); //sfr
 		y++;	
 	}
 	draw_up(cube,HIGHT/2 - c/2,tmp_x);
@@ -263,13 +321,12 @@ void	d_game(t_cube *cube,float i,int x,t_hit hit)
 {
 	float c;
 	float tmp_x;
-	(void)hit;
 
 	tmp_x = (float)TOLE/i;
 	c = tmp_x * ((WIDTH/2) / tan(30 * M_PI / 180));
 	if (c > HIGHT)
 		c = HIGHT;
-	draw_wall(cube,c,x);
+	draw_wall(cube,c,x,hit);
 }
 
 int	close_pro(t_cube *cube)
@@ -321,6 +378,7 @@ void	draw_square(t_cube *cube,int x,int y,int f)
 
 	z = 0;
 	k = 0;
+	(void)x, (void)y;
 	while(z < TOLE)
 	{
 		k = 0;
@@ -336,7 +394,9 @@ void	draw_square(t_cube *cube,int x,int y,int f)
 				k++;
 				continue;
 			}
-			my_mlx_pixel_put(cube, x + z, y + k, f);
+			//printf("x = %i y = %i\n",x + z,y + k);
+			// if (cube->map[(int)floor(y + k/ TOLE)][(int)floor(x + z/ TOLE)] != ' ')
+				my_mlx_pixel_put(cube, x + z, y + k, f);
 			k++;
 		}
 		z++;
@@ -375,30 +435,6 @@ void	draw_player(t_cube *cube,float x,float y)
 	}
 }
 
-// void	check(t_cube *cube)
-// {
-// 	if (cube->player.posx >= TOLE/2)
-// 	{
-// 		cube->map[cube->player.y][cube->player.x] = '0';
-// 		cube->player.x++;
-// 	}
-// 	if (cube->player.posx <= -TOLE/2)
-// 	{
-// 		cube->map[cube->player.y][cube->player.x] = '0';
-// 		cube->player.x--;
-// 	}
-// 	if (cube->player.posy >= TOLE/2)
-// 	{
-// 		cube->map[cube->player.y][cube->player.x] = '0';
-// 		cube->player.y++;
-// 	}
-// 	if (cube->player.posy <= -TOLE/2)
-// 	{
-// 		cube->map[cube->player.y][cube->player.x] = '0';
-// 		cube->player.y--;
-// 	}
-// }
-
 int	draw(t_cube *cube)
 {
 	int i;
@@ -429,7 +465,7 @@ int	draw(t_cube *cube)
 		i++;
 	}
 		
-	
+	// && cube->map[(int)floor( i * sin(cube->player.angle)/ TOLE)][(int)floor(((cube->player.x) + i * cos(cube->player.angle)) / TOLE)] != '1'
 	return (0);
 }
 
@@ -509,24 +545,28 @@ int	rotation(int x,int y ,t_cube *cube)
 
 	if (x > WIDTH / 2 && x < WIDTH && tmp == 0)
 	{
-		cube->player.angle -= 0.1;
+		cube->player.angle -= 0.03;
 		tmp = x;
 	}
 	else if (x < WIDTH / 2 && x > 0 && tmp == 0)
 	{
-		cube->player.angle += 0.1;
+		cube->player.angle += 0.03;
 		tmp = x;
 	}
 	else if (x < tmp)
 	{
-		cube->player.angle += 0.1;
+		cube->player.angle += 0.03;
 		tmp = x;
 	}
 	else if (x > tmp)
 	{
-		cube->player.angle -= 0.1;
+		cube->player.angle -= 0.03;
 		tmp = x;
 	}
+	if (tmp < 0)
+		tmp++;
+	if (tmp > WIDTH)
+		tmp--;
 	if (cube->player.angle > 2 * M_PI)
 		cube->player.angle -= 2 * M_PI;
 	if (cube->player.angle < 0)
@@ -537,16 +577,17 @@ int	rotation(int x,int y ,t_cube *cube)
 void	start(t_pars *g)
 {
 	t_cube cube;
-	
+
 	cube.map = g->rgb;
 	cube.fc = g->f;
 	cube.cc = g->c;
 	find_player(&cube);
 	cube.mlx.mlx_ptr = mlx_init();
 	cube.mlx.win_ptr = mlx_new_window(cube.mlx.mlx_ptr, WIDTH, HIGHT, "cub3d");
+	texture(&cube);
 	mlx_hook(cube.mlx.win_ptr, 17, 0, close_pro, &cube);
 	mlx_hook(cube.mlx.win_ptr, 2, 0, move, &cube);
-	//mlx_hook(cube.mlx.win_ptr, 6, 0, rotation, &cube);
+	mlx_hook(cube.mlx.win_ptr, 6, 0, rotation, &cube);
 	mlx_hook(cube.mlx.win_ptr, 3, 0, no_move, &cube);
 	mlx_loop_hook(cube.mlx.mlx_ptr, update, &cube);
 	mlx_loop(cube.mlx.mlx_ptr);

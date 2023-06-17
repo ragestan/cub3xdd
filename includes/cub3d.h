@@ -6,7 +6,7 @@
 /*   By: zbentalh <zbentalh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 20:16:03 by rel-mham          #+#    #+#             */
-/*   Updated: 2023/06/15 14:58:22 by zbentalh         ###   ########.fr       */
+/*   Updated: 2023/06/17 14:51:37 by zbentalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,10 +30,34 @@
 # define PLAYER_S 10
 # define MINIMAP_SCALE 0.3
 
+typedef struct s_texture
+{
+	void *img;
+	char	*data;
+	int		bits_per_pixel;
+	int		line_length;
+	int		endian;
+	int		width;
+	int		hight;
+}			t_texture;
+
+typedef struct s_test
+{
+	int width;
+	int hight;
+	int bits_per_pixel;
+	int line_length;
+	int endian;
+	char *no;
+	char *so;
+	
+}			t_test;
+
 typedef	struct s_hit
 {
 	double x;
 	double y;
+	double angle;
 	int vertical;
 }				t_hit;
 
@@ -66,6 +90,8 @@ typedef struct s_cube
 	int  cc;
 	t_player player;
 	t_mlx mlx;
+	t_test test;
+	t_texture text[4];
 }			t_cube;
 
 typedef struct s_pars
