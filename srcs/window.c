@@ -112,6 +112,7 @@ void	horizintol_hit(t_cube *cube,double angle,t_hit *hit)
 	// printf("test == %i\n",ft_stlen_v2(cube->map,18));
 	// exit(0);
 	hit->angle = angle;
+	hit->vertical= 0;
 	if (angle == 0 || angle == M_PI || angle == 2 * M_PI)
 		return(hit->x = DBL_MAX, (void)(hit->y = DBL_MAX));
 	y = floor(cube->player.y / TOLE) * TOLE;
@@ -194,7 +195,6 @@ void	vertical_hit(t_cube *cube,double angle,t_hit *hit)
 	}
 	if (angle > M_PI / 2 && angle < 3 * M_PI / 2)
 		x++;
-	hit->vertical= 0;
 	if (sqrt(pow(hit->x - cube->player.x,2) + pow(hit->y - cube->player.y,2)) > sqrt(pow(x - cube->player.x,2) + pow(y - cube->player.y,2)))
 	{
 		hit->x = x;
@@ -493,6 +493,8 @@ void	my_mlx_pixel_put(t_cube *data, int x, int y, int color)
 {
 	char	*dst;
 
+	if (x < 0 || x > WIDTH || y < 0 || y > HIGHT)
+		return ;
 	dst = data->mlx.data + (y * data->mlx.line_length + x * (data->mlx.bits_per_pixel / 8));
 	*(unsigned int*)dst = color;
 }
@@ -503,7 +505,7 @@ int update_player(t_cube *cube)
 	{
 		cube->player.x += 5 * cos(cube->player.angle + (M_PI / 2));
 		cube->player.y += 5 * sin(cube->player.angle + (M_PI / 2));
-		if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x - 5) / TOLE )] == '1')
+		if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x + 10) / TOLE )] == '1')
 		{
 			cube->player.x -= 5 * cos(cube->player.angle + (M_PI / 2));
 			cube->player.y -= 5 * sin(cube->player.angle + (M_PI / 2));	
@@ -514,7 +516,7 @@ int update_player(t_cube *cube)
 	{
 		cube->player.x += 5 * cos(cube->player.angle - (M_PI / 2));
 		cube->player.y += 5 * sin(cube->player.angle - (M_PI / 2));
-		if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x) / TOLE )] == '1')
+		if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x - 10) / TOLE )] == '1')
 		{
 			cube->player.x -= 5 * cos(cube->player.angle - (M_PI / 2));
 			cube->player.y -= 5 * sin(cube->player.angle - (M_PI / 2));
@@ -525,7 +527,7 @@ int update_player(t_cube *cube)
 	{
 		cube->player.x += 5 * cos(cube->player.angle);
 		cube->player.y += 5 * sin(cube->player.angle);
-		if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x - 5) / TOLE )] == '1')
+		if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x + 10) / TOLE )] == '1')
 		{
 			cube->player.x -= 5 * cos(cube->player.angle);
 			cube->player.y -= 5 * sin(cube->player.angle);
@@ -536,7 +538,7 @@ int update_player(t_cube *cube)
 	{
 		cube->player.x -= 5 * cos(cube->player.angle);
 		cube->player.y -= 5 * sin(cube->player.angle);
-		if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x) / TOLE )] == '1')
+		if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x - 10) / TOLE )] == '1')
 		{
 			cube->player.x += 5 * cos(cube->player.angle);
 			cube->player.y += 5 * sin(cube->player.angle);
