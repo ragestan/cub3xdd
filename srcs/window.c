@@ -6,7 +6,7 @@
 /*   By: zbentalh <zbentalh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/11 18:00:44 by zbentalh          #+#    #+#             */
-/*   Updated: 2023/06/17 16:51:15 by zbentalh         ###   ########.fr       */
+/*   Updated: 2023/06/18 17:30:01 by zbentalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,6 @@
 void	texture(t_cube *cube)
 {
 	cube->text[0].img = mlx_xpm_file_to_image(cube->mlx.mlx_ptr, "srcs/l.xpm", &cube->text[0].width, &cube->text[0].hight);
-	//printf("width = %d hight = %d\n",cube->text[0].width ,cube->text[0].hight);
 	cube->text[0].data = mlx_get_data_addr(cube->text[0].img, &cube->text[0].bits_per_pixel, &cube->text[0].line_length, &cube->text[0].endian);
 	cube->text[1].img = mlx_xpm_file_to_image(cube->mlx.mlx_ptr, "srcs/r.xpm", &cube->text[1].width, &cube->text[1].hight);
 	cube->text[1].data = mlx_get_data_addr(cube->text[1].img, &cube->text[1].bits_per_pixel, &cube->text[1].line_length, &cube->text[1].endian);
@@ -112,6 +111,7 @@ void	horizintol_hit(t_cube *cube,double angle,t_hit *hit)
 	
 	// printf("test == %i\n",ft_stlen_v2(cube->map,18));
 	// exit(0);
+	hit->angle = angle;
 	if (angle == 0 || angle == M_PI || angle == 2 * M_PI)
 		return(hit->x = DBL_MAX, (void)(hit->y = DBL_MAX));
 	y = floor(cube->player.y / TOLE) * TOLE;
@@ -195,7 +195,6 @@ void	vertical_hit(t_cube *cube,double angle,t_hit *hit)
 	if (angle > M_PI / 2 && angle < 3 * M_PI / 2)
 		x++;
 	hit->vertical= 0;
-	hit->angle = angle;
 	if (sqrt(pow(hit->x - cube->player.x,2) + pow(hit->y - cube->player.y,2)) > sqrt(pow(x - cube->player.x,2) + pow(y - cube->player.y,2)))
 	{
 		hit->x = x;
@@ -285,33 +284,54 @@ void	draw_up(t_cube *cube,int y,int tmp_x)
 	}
 }
 
+float	calcul_c(int y,int c)
+{
+	float i;
+
+	i = 0;
+	while (y < HIGHT && y <= HIGHT/2 + c/2)
+	{
+		y++;
+		i++;
+	}
+	return (i);
+}
+
 void	draw_wall(t_cube *cube,int c,int tmp_x,t_hit hit)
 {
 	int y;
 	int z;
-	int l;
+	int r;
+	float l;
+	float i;
+	
 	y = HIGHT/2 - c/2;
+	i = (float) (TOLE / calcul_c(y,c));
 	z = (hit.x / TOLE - (int)(hit.x / TOLE)) * TOLE;
-	l = (hit.y / TOLE - (int)(hit.y / TOLE)) * TOLE;
+	r = (hit.y / TOLE - (int)(hit.y / TOLE)) * TOLE;
+	l = 0;
 	while(y < HIGHT && y <= HIGHT/2 + c/2)
 	{
+		//printf("%d\n",l);
 		if (hit.vertical == 1)
 		{
 			if (hit.angle > M_PI / 2 && hit.angle < 3 * M_PI / 2)
 			{
 				//printf("up\n");
-				my_mlx_pixel_put(cube,tmp_x,y,texture_color(cube,z,l,0));//khdr
+				my_mlx_pixel_put(cube,tmp_x,y,texture_color(cube,r,(int)l,0));//khdr
 				//printf("down\n");
 			}
 			else
-				my_mlx_pixel_put(cube,tmp_x,y,texture_color(cube,z,l,1));//rose
+				my_mlx_pixel_put(cube,tmp_x,y,texture_color(cube,r,(int)l,1));//rose
 		}
 		else
 			if (hit.angle > 0 && hit.angle < M_PI)
-				my_mlx_pixel_put(cube,tmp_x,y,texture_color(cube,z,l,2));//zr9
+				my_mlx_pixel_put(cube,tmp_x,y,texture_color(cube,z,(int)l,2));//zr9
 			else
-				my_mlx_pixel_put(cube,tmp_x,y,texture_color(cube,z,l,3)); //sfr
-		y++;	
+				my_mlx_pixel_put(cube,tmp_x,y,texture_color(cube,z,(int) l,3)); //sfr
+			
+		y++;
+		l += i;
 	}
 	draw_up(cube,HIGHT/2 - c/2,tmp_x);
 	draw_down(cube,HIGHT/2 + c/2,tmp_x);
