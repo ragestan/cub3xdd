@@ -207,14 +207,12 @@ void draw_line(t_cube *cube)
 {
 	t_hit x;
 	double	angle;
-	int i = 0;
+	int i;
 	int y;
-	
 
 	y = 0;
-	x.x = 0;
-	x.y = 0;
-	angle = cube->player.angle - 30 * M_PI/180;
+	i = 0;
+	angle = cube->player.angle - 30 * M_PI / 180;
 	if (angle > 2 * M_PI)
 		angle -= 2 * M_PI;
 	if (angle < 0)
@@ -223,45 +221,15 @@ void draw_line(t_cube *cube)
 	{
 		horizintol_hit(cube,angle,&x);
 		vertical_hit(cube,angle,&x);
-		// int f;
-		// int z;
-		// f = x.x;
-		// //printf("%f,%f\n",x.x,x.y);	
-		// if (x.x != DBL_MAX && x.y != DBL_MAX)
-		// {
-		// 	while( f < x.x + 5)
-		// 	{
-		// 		z = x.y;
-		// 		while(z < x.y + 5)
-		// 		{
-			
-		// 			if (z < 0 || f < 0 || z > 1400 || f > 720)
-		// 				break;
-		// 			if (x.x < 20 && angle > M_PI / 2 && angle < 3 * M_PI / 2)
-		// 			//printf(" x = %d,%f,%f,%f,%f\n",f,cube->player.x,cube->player.y,x.z,x.f);
-		// 			my_mlx_pixel_put(cube, (f +  cos(angle)) * MINIMAP_SCALE , (z + sin(angle)) * MINIMAP_SCALE, 0xffffff);
-		// 			z++;
-		// 		}
-		// 		if (z < 0 || f < 0 || z > 1400 || f > 720)
-		// 				break;
-		// 		f++;
-		// 	}
-		// }
-		//  my_mlx_pixel_put(cube, ((x.x) +  sin(angle)) * MINIMAP_SCALE , ((x.y) + cos(angle)) * MINIMAP_SCALE, 0x9BA4B5);
-		//printf("%f--->%f\n",x.x,x.y);
-		//exit(0);
 		d_game(cube,sqrt(pow(x.x - cube->player.x, 2) + pow(x.y - cube->player.y, 2)),y,x);
-		//printf("%f\n",sqrt(pow(x.x - cube->player.x, 2) + pow(x.y - cube->player.y, 2)));
 		y++;
 		i++;
-		//printf("%i\n",y);
 		angle += (60 * M_PI / 180 ) / (WIDTH);
 		if (angle > 2 * M_PI)
 			angle -= 2 * M_PI;
 		if (angle < 0)
 			angle += 2 * M_PI;
 	}
-	//exit(1);
 }
 
 void	draw_down(t_cube *cube,int y,int tmp_x)
@@ -306,11 +274,13 @@ void	draw_wall(t_cube *cube,int c,int tmp_x,t_hit hit)
 	float i;
 	
 	y = HIGHT/2 - c/2;
+//	printf("y = %d c = [%d] HIGHT = [%d]\n",y,c,HIGHT/2 + c/2);
 	i = (float) (TOLE / calcul_c(y,c));
 	z = (hit.x / TOLE - (int)(hit.x / TOLE)) * TOLE;
 	r = (hit.y / TOLE - (int)(hit.y / TOLE)) * TOLE;
 	l = 0;
-	while(y < HIGHT && y <= HIGHT/2 + c/2)
+	//printf("hit.x = [%f]\n",hit.x);
+	while(y <= HIGHT/2 + c/2)
 	{
 		//printf("%d\n",l);
 		if (hit.vertical == 1)
@@ -339,13 +309,13 @@ void	draw_wall(t_cube *cube,int c,int tmp_x,t_hit hit)
 
 void	d_game(t_cube *cube,float i,int x,t_hit hit)
 {
-	float c;
+	double c;
 	float tmp_x;
 
 	tmp_x = (float)TOLE/i;
 	c = tmp_x * ((WIDTH/2) / tan(30 * M_PI / 180));
-	if (c > HIGHT)
-		c = HIGHT;
+	if (c > 4000)
+		c = 4000;
 	draw_wall(cube,c,x,hit);
 }
 
@@ -365,6 +335,10 @@ int	no_move(int keycode,t_cube *cube)
 		cube->player.uod = 0;
 	if (keycode == 1)
 		cube->player.uod = 0;
+	if (keycode == 124)
+		cube->player.a = 0;
+	if (keycode == 123)
+		cube->player.a = 0;
 	return(0);
 }
 
@@ -381,13 +355,9 @@ int move(int keycode,t_cube *cube)
 	if (keycode == 1) //s
 		 cube->player.uod = 1;
 	if (keycode == 124)
-		cube->player.angle -= 0.01 * M_PI;
+		cube->player.a = - 1;
 	if (keycode == 123)
-		cube->player.angle += 0.01 * M_PI;
-	if (cube->player.angle > 2 * M_PI)
-		cube->player.angle -= 2 * M_PI;
-	if (cube->player.angle < 0)
-		cube->player.angle += 2 * M_PI;
+		cube->player.a = 1;
 	return(0);
 }
 
@@ -493,10 +463,24 @@ void	my_mlx_pixel_put(t_cube *data, int x, int y, int color)
 {
 	char	*dst;
 
-	if (x < 0 || x > WIDTH || y < 0 || y > HIGHT)
+	//printf("x = %i y = %i\n",x,y);
+	if (x < 0 || x >= WIDTH || y < 0 || y >= HIGHT)
 		return ;
 	dst = data->mlx.data + (y * data->mlx.line_length + x * (data->mlx.bits_per_pixel / 8));
 	*(unsigned int*)dst = color;
+}
+
+int wall_check_test(t_cube *cube)
+{
+	if (cube->map[(int)((cube->player.y + 10) / TOLE)][(int)((cube->player.x) / TOLE )] == '1' && cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x + 10) / TOLE)] == '1')
+		return (1);
+	if (cube->map[(int)((cube->player.y + 10) / TOLE)][(int)((cube->player.x) / TOLE )] == '1' && cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x - 10) / TOLE)] == '1')
+		return (1);
+	if (cube->map[(int)((cube->player.y - 10) / TOLE)][(int)((cube->player.x) / TOLE )] == '1' && cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x + 10) / TOLE)] == '1')
+		return (1);
+	if (cube->map[(int)((cube->player.y - 10) / TOLE)][(int)((cube->player.x) / TOLE )] == '1' && cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x - 10) / TOLE )] == '1')
+		return (1);
+	return (0);
 }
 
 int update_player(t_cube *cube)
@@ -505,7 +489,7 @@ int update_player(t_cube *cube)
 	{
 		cube->player.x += 5 * cos(cube->player.angle + (M_PI / 2));
 		cube->player.y += 5 * sin(cube->player.angle + (M_PI / 2));
-		if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x + 10) / TOLE )] == '1')
+		if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x + 10) / TOLE )] && (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x + 10) / TOLE )] == '1' || wall_check_test(cube) == 1))
 		{
 			cube->player.x -= 5 * cos(cube->player.angle + (M_PI / 2));
 			cube->player.y -= 5 * sin(cube->player.angle + (M_PI / 2));	
@@ -516,7 +500,7 @@ int update_player(t_cube *cube)
 	{
 		cube->player.x += 5 * cos(cube->player.angle - (M_PI / 2));
 		cube->player.y += 5 * sin(cube->player.angle - (M_PI / 2));
-		if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x - 10) / TOLE )] == '1')
+		if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x - 10) / TOLE )] && (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x - 10) / TOLE )] == '1' || wall_check_test(cube) == 1))
 		{
 			cube->player.x -= 5 * cos(cube->player.angle - (M_PI / 2));
 			cube->player.y -= 5 * sin(cube->player.angle - (M_PI / 2));
@@ -527,7 +511,7 @@ int update_player(t_cube *cube)
 	{
 		cube->player.x += 5 * cos(cube->player.angle);
 		cube->player.y += 5 * sin(cube->player.angle);
-		if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x + 10) / TOLE )] == '1')
+		if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x + 10) / TOLE )] && (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x + 10) / TOLE )] == '1' || wall_check_test(cube) == 1))
 		{
 			cube->player.x -= 5 * cos(cube->player.angle);
 			cube->player.y -= 5 * sin(cube->player.angle);
@@ -538,13 +522,21 @@ int update_player(t_cube *cube)
 	{
 		cube->player.x -= 5 * cos(cube->player.angle);
 		cube->player.y -= 5 * sin(cube->player.angle);
-		if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x - 10) / TOLE )] == '1')
+		if (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x - 10) / TOLE )] && (cube->map[(int)((cube->player.y) / TOLE)][(int)((cube->player.x - 10) / TOLE )] == '1' || wall_check_test(cube) == 1))
 		{
 			cube->player.x += 5 * cos(cube->player.angle);
 			cube->player.y += 5 * sin(cube->player.angle);
 		}
 		cube->player.posy = 1;
 	}
+	if (cube->player.a == -1)
+		cube->player.angle -= 0.01 * M_PI;
+	if (cube->player.a == 1)
+		cube->player.angle += 0.01 * M_PI;
+	if (cube->player.angle > 2 * M_PI)
+		cube->player.angle -= 2 * M_PI;
+	if (cube->player.angle < 0)
+		cube->player.angle += 2 * M_PI;
 	return (0);
 }
 

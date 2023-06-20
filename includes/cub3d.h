@@ -68,6 +68,7 @@ typedef	struct	s_player
 	float x;
 	float y;
 	double angle;
+	int	a;
 	int	uod; 
 	int	lor;
 }				t_player;
