@@ -6,7 +6,7 @@
 /*   By: zbentalh <zbentalh@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 20:16:03 by rel-mham          #+#    #+#             */
-/*   Updated: 2023/06/17 14:51:37 by zbentalh         ###   ########.fr       */
+/*   Updated: 2023/06/22 18:49:56 by zbentalh         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,23 @@
 # define TOLE 40
 # define PLAYER_S 10
 # define MINIMAP_SCALE 0.3
+
+typedef	struct s_draw
+{
+	int y;
+	int z;
+	int r;
+	float l;
+	float i;
+}			t_draw;
+
+typedef struct s_hitfinder
+{
+	float x;
+	float y;
+	float xstep;
+	float ystep;
+}				t_hitfinder;
 
 typedef struct s_texture
 {
